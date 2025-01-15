@@ -1,16 +1,15 @@
-# Імпортуємо бібліотеки
 from tensorflow.keras import layers, models
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import os
 import matplotlib.pyplot as plt
 
-# Місце знаходження датасету
+# The location of the dataset
 base_dir = 'dataset'
 train_dir = os.path.join(base_dir, 'train')
 val_dir = os.path.join(base_dir, 'val')
 test_dir = os.path.join(base_dir, 'test')
 
-# Аугментація даних для навчання та нормалізація для валідації/тестування
+# Data augmentation for training and normalization for validation/testing
 train_datagen = ImageDataGenerator(
     rescale=1.0 / 255.0,
     rotation_range=20,
@@ -45,7 +44,7 @@ test_generator = test_datagen.flow_from_directory(
     class_mode='binary'
 )
 
-# Повнозв’язна мережа
+# Fully connected network
 model_dense = models.Sequential([
     layers.Flatten(input_shape=(150, 150, 3)),
     layers.Dense(256, activation='relu'),
@@ -58,7 +57,7 @@ model_dense = models.Sequential([
 
 model_dense.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-# Згорткова нейронна мережа
+# Convolutional neural network
 model_cnn = models.Sequential([
     layers.Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)),
     layers.MaxPooling2D((2, 2)),
@@ -74,20 +73,20 @@ model_cnn = models.Sequential([
 
 model_cnn.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-# Встановлюємо обмеження епох
+# We set epoch limits
 epochs_dense = 8
 epochs_cnn = 14
 
-# Тренування моделі а)
+# Training а)
 history_dense = model_dense.fit(train_generator, epochs=epochs_dense, validation_data=val_generator)
 model_dense.save('dense_model_overfit.h5')
 
-# Тренування моделі б)
+# Training б)
 history_cnn = model_cnn.fit(train_generator, epochs=epochs_cnn, validation_data=val_generator)
 model_cnn.save('cnn_model_overfit.h5')
 
 
-# Функція для малювання наших навчальних кривих, щоб показати перенавчання
+# A function to plot our learning curves to show retraining
 def plot_training_history(history, title):
     acc = history.history['accuracy']
     val_acc = history.history['val_accuracy']
@@ -116,18 +115,18 @@ def plot_training_history(history, title):
     plt.show()
 
 
-# Криві навчання для обох моделей
+# Learning curves for both models
 plot_training_history(history_dense, 'Dense Model (8 Epochs)')
 plot_training_history(history_cnn, 'CNN Model (14 Epochs)')
 
-# Оцінимо моделі на тестовому наборі даних
+# Let's evaluate the models on the test data set
 loss_dense, acc_dense = model_dense.evaluate(test_generator)
 print(f'Dense model accuracy on test set: {acc_dense}')
 loss_cnn, acc_cnn = model_cnn.evaluate(test_generator)
 print(f'CNN model accuracy on test set: {acc_cnn}')
 
 
-# Візуалізуємо наші передбачення
+# Visualisation
 def visualize_predictions(model, generator):
     class_labels = list(generator.class_indices.keys())
     x_batch, y_batch = next(generator)
@@ -150,7 +149,6 @@ def visualize_predictions(model, generator):
     plt.show()
 
 
-# Вивід наших передбачень
 print("Predictions for Dense Model:")
 visualize_predictions(model_dense, test_generator)
 print("Predictions for CNN Model:")
